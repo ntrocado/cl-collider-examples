@@ -256,3 +256,57 @@
 ;;;
 
 ;;; 1.11 Arrays, Iteration, and Logical Expressions
+
+;;; 1.12 How to "Do" an Array
+
+;;; Figure 1.15
+;;; Corrected to use <fund>, which was supposedly the original intention
+(let ((fund 220))
+  (play
+   (* 0.3
+      (mix (list (sin-osc.ar fund 0 (max 0 (lf-noise1.kr 12)))
+		 (* 1/2
+		    (sin-osc.ar (* 2 fund) 0 (max 0 (lf-noise1.kr 12))))
+		 (* 1/3
+		    (sin-osc.ar (* 3 fund) 0 (max 0 (lf-noise1.kr 12))))
+		 (* 1/4
+		    (sin-osc.ar (* 4 fund) 0 (max 0 (lf-noise1.kr 12))))
+		 (* 1/5
+		    (sin-osc.ar (* 5 fund) 0 (max 0 (lf-noise1.kr 12))))
+		 (* 1/6
+		    (sin-osc.ar (* 6 fund) 0 (max 0 (lf-noise1.kr 12)))))))))
+;;;
+
+;;; Figure 1.16
+(play (* 0.7 (mix
+	      (loop :for count :upto 12
+		    :for harm := (* 110 (1+ count))
+		    :collect
+		    (* (sin-osc.ar harm 0
+				   (max '(0 0)
+					(sin-osc.kr (/ (1+ count) 4))))
+		       (/ 1 (1+ count)))))))
+;;;
+
+;;; Figure 1.18
+(play
+ (flet ((rrand (mi ma)
+	  (+ mi (random (- ma mi)))))
+   (let ((num-res 5)
+	 (bells 20)
+	 (scale (mapcar #'midicps '(60 62 64 67 69))))
+     (loop :repeat bells
+	   :for freqs := (loop :repeat num-res
+			       :collect(* (1+ (random 15))
+					  (alexandria:random-elt scale)))
+	   :for amps := (loop :repeat num-res
+			      :collect (rrand 0.3 0.9))
+	   :for rings := (loop :repeat num-res
+			       :collect (rrand 1.0 4.0))
+	   :for specs := (list freqs amps rings)
+	   :for pan := (softclip (lf-noise1.kr (* 2 (+ 3 (random 4)))))
+	   :do (print specs)
+	   :collect (pan2.ar (klank.ar specs
+				       (dust.ar 1/6 0.03))
+			     pan)))))
+;;;
