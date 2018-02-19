@@ -183,7 +183,7 @@
   (play
    (let ((speed (+ (* (in.kr *kbus1* 1) 0.2) 1))
 	 (direction (in.kr *kbus2*)))
-     (play-buf.ar 1 *houston* (* speed direction) :loop 1))))
+     (play-buf.ar 1 *houston* (* speed direction) :loop t))))
 
 (progn
   ;; now start the controls
@@ -195,10 +195,9 @@
 (play
    (let ((speed (+ (* (in.kr *kbus1* 1) 0.2) 1))
 	 (direction (in.kr *kbus2*)))
-     (out.ar 1 (play-buf.ar 1 *houston* (* speed direction) :loop 1)))))
+     (out.ar 1 (play-buf.ar 1 *houston* (* speed direction) :loop t)))))
 ;;;
 
-;;; TODO - How to deal with map?
 (defparameter *kbus3* (bus-control))
 (defparameter *kbus4* (bus-control))
 (play (out.kr *kbus3* (range (sin-osc.ar 3) 340 540)))
@@ -206,5 +205,54 @@
 (defsynth switch (&key (freq 440))
   (out.ar 0 (sin-osc.ar freq 0 0.3)))
 (defparameter *x* (switch))
+;; Currently the only way to route a control bus to a synth's arg is:
+;; (see https://github.com/byulparan/cl-collider/issues/33)
+(sc::send-message *s* "/n_map" (sc::id *x*) "freq" (busnum *kbus3*))
+(sc::send-message *s* "/n_map" (sc::id *x*) "freq" (busnum *kbus4*))
+
+;;; Figure 1.10
+(play
+ (out.ar 0 (pan2.ar (* (play-buf.ar 1 *houston* 1 :loop t)
+		       (sin-osc.ar (lf-noise0.kr 12 500 600)))
+		    0.5)))
+(play
+ (let* ((source (play-buf.ar 1 *chouston* 1 :loop t))
+	(delay (allpass-c.ar source 2 '(0.65 1.15) 10)))
+   (out.ar 0 (+ (pan2.ar source) delay))))
+;;;
+
+;;; Figure 1.11
+;; Create and name buses
+(defparameter *delay* (bus-audio :server *s* :chanls 2))
+(defparameter *mod* (bus-audio :server *s* :chanls 2))
+(defparameter *gate* (bus-audio :server *s* :chanls 2))
+(defparameter *k5* (bus-control))
+
+(defparameter *control-syn* (play (out.kr *k5* (lf-noise0.kr 4))))
+
+(defparameter *delay-syn*
+  (play (out.ar 0 (allpass-c.ar (in.ar *delay* 2)
+				2 '(0.65 1.15) 10))
+	:to *control-syn* :pos :after))
+
+(defparameter *mod-syn*
+  (play (out.ar *delay* (* (in.ar *mod* 2)
+			      (sin-osc.ar (+ (* (in.kr *k5*)
+						500)
+					     1100))))
+	:to *delay-syn* :pos :before))
+
+(defparameter *gate-syn*
+  (play (out.ar (list 0 *mod*) (* (in.ar *gate* 2)
+			    (max 0 (in.kr *k5*))))
+	:to *mod-syn* :pos :before))
+
+(defparameter *pb-group* (make-group :pos :before :to *control-syn*))
+
+(play (out.ar *gate* (pan2.ar (play-buf.ar 1 1 *houston* :loop t) 0.5))
+      :to *pb-group*)
+(play (out.ar *gate* (pan2.ar (play-buf.ar 1 1 *chouston* :loop t) 0.5))
+      :to *pb-group*)
+;;;
 
 ;;; 1.11 Arrays, Iteration, and Logical Expressions
