@@ -64,7 +64,7 @@
        (linen.kr (impulse.kr (line.kr 1 20 60))	  ; trigger
 		 0				  ; attack
 		 0.5				  ; sustain
-		 (/ 1 (line.kr 1 20 60))))))	  ; trigger
+		 (/ 1 (line.kr 1 20 60)))))	  ; trigger
 ;;;
 
 ;;; 1.8 Variables
@@ -195,7 +195,7 @@
 (play
    (let ((speed (+ (* (in.kr *kbus1* 1) 0.2) 1))
 	 (direction (in.kr *kbus2*)))
-     (out.ar 1 (play-buf.ar 1 *houston* (* speed direction) :loop t)))))
+     (out.ar 1 (play-buf.ar 1 *houston* (* speed direction) :loop t))))
 ;;;
 
 (defparameter *kbus3* (bus-control))
@@ -309,4 +309,79 @@
 	   :collect (pan2.ar (klank.ar specs
 				       (dust.ar 1/6 0.03))
 			     pan)))))
+;;;
+
+;;; Figure 1.19
+(defsynth simple-blip (&key (midi 60) (tone 10) (art 0.125) (amp 0.2) (pan -1))
+  (let ((out (pan2.ar (* (blip.ar (midicps midi) tone)
+			 (env-gen.kr (perc 0.01 art)))
+		      pan))
+	(amp (- amp (* (- midi 60) 0.02))))
+    (detect-silence.ar out 1 :act :free)
+    (out.ar 0 (* out amp))))
+;;; ...
+
+;;; Figure 1.21
+(play
+ (let* ((scale 300)
+	(offset 600)
+	(trigger (impulse.kr 10))
+	(control (sin-osc.ar 1/4))
+	(control (+ (* control scale) offset)))
+   (sin-osc.ar (poll.kr trigger (abs control)))))
+;; faux Theremin
+(play (sin-osc.ar (sin-osc.ar 8 0 10 (mouse-x.kr 440 1760 :linear))))
+;;;
+
+;;; Figure 1.22
+(play
+ (let* ((rate 3.0)
+	(trigger (impulse.kr rate))
+	(control (lf-noise0.kr rate))
+	(carrier 62)
+	(mod-ratio 4.125)
+	(index 10)
+	(carrier-f (midicps carrier)))
+   (poll.kr trigger carrier-f "carrier")
+   (poll.kr trigger index "index")
+   (poll.kr trigger mod-ratio "mod-ratio")
+   (pm-osc.ar carrier-f (* carrier-f mod-ratio) index)))
+;;;
+
+;;; Figure 1.22 - Solutions
+(play
+ (flet ((round-to (n d)
+	  (* (round n d) d)))
+  (let* ((rate 3.0)
+	 (trigger (impulse.kr rate))
+	 (control (lf-noise0.kr rate))
+	 (carrier (+ (* control 24) 60))
+	 ;; (mod-ratio (+ control 5))
+	 (mod-ratio (sin-osc.ar 1/5 0 1 5))
+	 ;; (index (+ (* control 7) 8))
+	 (index (lf-noise1.kr 1/5 7 8))
+	 (carrier-f (midicps carrier)))
+    (poll.kr trigger carrier "carrier")
+    (poll.kr trigger index "index")
+    (poll.kr trigger mod-ratio "mod-ratio")
+    (pm-osc.ar carrier-f (round-to (* carrier-f mod-ratio) 0.125) index))))
+;;;
+
+;;; Figure 1.23
+(defsynth pm-osc-ex (&key (left 10) (right 10) (index-low 4) (index-high 12))
+  (let* ((trigger (impulse.kr [left right]))
+	 (pitch (round (t-rand.kr 36 72 trigger) 1))
+	 (timbre (lf-noise0.kr 1/20 0.2 2))
+	 (env (linen.kr trigger 0.01 1 (/ 1 [left right])))
+	 (index (+ (* env index-high) index-low))
+	 (pitch (midicps pitch))
+	 (out (pm-osc.ar pitch (* pitch timbre) index 0 env)))
+    (out.ar 0 out)))
+
+(defparameter *a* (pm-osc-ex))
+
+(ctrl *a* :left 4)
+(ctrl *a* :right 5)
+(ctrl *a* :index-low 1)
+(ctrl *a* :index-high 4)
 ;;;
