@@ -385,3 +385,34 @@
 (ctrl *a* :index-low 1)
 (ctrl *a* :index-high 4)
 ;;;
+
+;;; Figure 1.24
+(defsynth latch-demo (&key (rate 9))
+  (let* ((latch-rate (* rate (lf-noise0.kr 1/10 0.03 1.6)))
+	 (index (latch.kr (lf-saw.kr latch-rate 0 5 6)
+			  (impulse.kr rate)))
+	 (freq (midicps
+		(round
+		 (latch.kr (lf-saw.kr latch-rate 0
+				      (max 0 (lf-noise1.kr 1/5 24 10))
+				      (lf-noise0.kr 1/7 12 60))
+			   (impulse.kr rate))
+		 1)))
+	 (ratio (lf-noise1.kr 1/10 2 5))
+	 (env (env-gen.kr (perc 0 (/ (lf-noise0.kr rate 1 1.5) rate))
+			  :gate (impulse.kr rate)
+			  :level-scale (min 0.8 (max 0 (lf-noise1.kr [5 5] 2 1)))))
+	 (out (pm-osc.ar [freq (* freq 1.5)]
+			 (* freq ratio)
+			 index
+			 0.0
+			 env)))
+    (out.ar 0 out)))
+
+(ctrl *a* :rate 10)
+(ctrl *a* :rate 15)
+(ctrl *a* :rate 6)
+
+(free *a*)
+
+(a (b a c))
