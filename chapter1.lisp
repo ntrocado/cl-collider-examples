@@ -15,15 +15,17 @@
 (play (rlpf.ar (dust.ar '(12 15)) (lf-noise1.ar (list (/ 1 3) (/ 1 4)) 1500 1600) 0.02))
 
 ;;; Figure 1.1
-;;; TODO
 (play
  (let ((sines 5)
        (speed 6))
-   (mix (loop :repeat sines
-	      :collect (let ((x nil))
-			 (pan2.ar (sin-osc.ar (* (1+ x) 100)
-					      0
-					      )))) )))
+   (mix (/ (loop :for x :from 1 :upto sines
+		 :collect (pan2.ar
+			   (sin-osc.ar (* x 100) 0
+				       (max 0
+					    (+ (lf-noise1.kr speed)
+					       (line.kr 1 -1 30))))
+			   (- 1 (random 2.0))))
+	   sines))))
 ;;;
 
 ;;; 1.2 Messages and Arguments
@@ -141,11 +143,19 @@
 	 (mod! (+ 5 (/ 1 (i-rand.ir 2 6))))
 	 (out (pm-osc.ar freq
 			 (* mod! freq)
-			 (env-gen.kr envl :time-scale art :level-scale tone)
+			 (env-gen.kr envl
+				     :time-scale art
+				     :level-scale tone)
 			 0
-			 (env-gen.kr envl :time-scale art :level-scale 0.3)))
+			 (env-gen.kr envl
+				     :time-scale art
+				     :level-scale 0.3)))
 	 (out (pan2.ar out pan))
-	 (out (* out (env-gen.kr envl :time-scale (* 1.3 art) :level-scale (rand.ir 0.1 0.5) :act :free))))
+	 (out (* out
+		 (env-gen.kr envl
+			     :time-scale (* 1.3 art)
+			     :level-scale (rand.ir 0.1 0.5)
+			     :act :free))))
     (out.ar 0 out)))
 
 ;; Then run this a bunch of times:
@@ -416,6 +426,38 @@
 (ctrl *a* :rate 6)
 
 (free *a*)
+;;;
+
+;;; 1.15 When Bad Code Happens to Good People (Debugging)
 
 ;;; Figure 1.25
+(defun exp-rand (&optional (rate 1.0))
+  (- (/ (log (- 1 (* (- 1 (exp (- rate))) (random 1.0))))
+	rate)))
 
+(defun rrand (mi ma)
+  (+ mi (random (- ma mi))))
+  
+(defun exp-rrand (mi ma)
+  (+ mi (* (exp-rand) (- ma mi))))
+
+(play
+ (let* ((burst-freq 500)
+	(burst-env (env-gen.kr (perc 0 0.05)
+			       :gate (dust.kr 1/5)
+			       :level-scale 0.1))
+	(burst (sin-osc.ar burst-freq 0 burst-env))
+	(freqs (loop :repeat 10 :collect (exp-rrand 100 1000)))
+	(amps (loop :repeat 10 :collect (rrand 0.01 0.1)))
+	(rings (loop :repeat 10 :collect (rrand 1.0 6.0)))
+	(bell (pan2.ar (klank.ar (list freqs amps rings) burst)
+		       (rrand -1.0 1.0)))
+	(delay (allpass-n.ar bell 2.5
+			     (list  (lf-noise1.kr 7 1.5 1.6)
+				    (lf-noise1.kr 7 1.5 1.6))
+			     1 0.8)))
+   ;; (poll.kr 100 burst-env "env")
+   ;; (poll.kr 100 burst "burst")
+   ;; (pprint (list freqs amps rings))
+   (+ bell delay)))
+;;;
