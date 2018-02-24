@@ -409,10 +409,13 @@
 			 env)))
     (out.ar 0 out)))
 
+(defparameter *a* (latch-demo))
+
 (ctrl *a* :rate 10)
 (ctrl *a* :rate 15)
 (ctrl *a* :rate 6)
 
 (free *a*)
 
-(a (b a c))
+;;; Figure 1.25
+
