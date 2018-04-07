@@ -105,27 +105,20 @@
 
 (defsynth sine! ()
   (out.ar 0 (sin-osc.ar)))
-(sine!)
+(synth 'sine!)
 (defsynth sine! ()
   (out.ar 1 (sin-osc.ar)))
-(sine!)
+(synth 'sine!)
 
 (defsynth different-tones ((freq 440))
   (let ((out (* 0.3 (sin-osc.ar freq))))
     (out.ar 0 out)))
 
-(different-tones 440)
+(synth 'different-tones :freq 440)
 
-(defsynth different-tones (&key (freq 440))
-  (let ((out (* 0.3 (sin-osc.ar freq))))
-    (out.ar 0 out)))
-
-(different-tones :freq 550)
-(different-tones)
-
-(defparameter *a* (different-tones :freq (midicps 64)))
-(defparameter *b* (different-tones :freq (midicps 67)))
-(defparameter *c* (different-tones :freq (midicps 72)))
+(defparameter *a* (synth 'different-tones :freq (midicps 64)))
+(defparameter *b* (synth 'different-tones :freq (midicps 67)))
+(defparameter *c* (synth 'different-tones :freq (midicps 72)))
 (ctrl *a* :freq (midicps 65))
 (ctrl *c* :freq (midicps 71))
 (progn
@@ -136,7 +129,7 @@
 (free *c*)
 
 ;;; Figure 1.7
-(defsynth pm-crotale (&key (midi 60) (tone 3) (art 1) (amp 0.8) (pan 0))
+(defsynth pm-crotale ((midi 60) (tone 3) (art 1) (amp 0.8) (pan 0))
   (declare (ignore amp))
   (let* ((freq (midicps midi))
 	 (envl (perc 0 art))
@@ -159,7 +152,7 @@
     (out.ar 0 out)))
 
 ;; Then run this a bunch of times:
-(pm-crotale :midi (+ 48 (random 24)) :tone (+ 1 (random 5)))
+(synth 'pm-crotale :midi (+ 48 (random 24)) :tone (+ 1 (random 5)))
 ;;;
 
 ;;; 1.10 Buses, Buffers, and Nodes
@@ -180,9 +173,9 @@
 	(rate '(1 1.01))
 	(trigger (impulse.kr rate)))
    (play-buf.ar 1 *houston* 1 :trig trigger :start-pos (* frames!
-							 (line.kr 0 1 60)
-							 (env-gen.kr (linen 0.01 0.96 0.01 trigger))
-							 rate))))
+							  (line.kr 0 1 60)
+							  (env-gen.kr (linen 0.01 0.96 0.01 trigger))
+							  rate))))
 ;;;
 
 ;;; Figure 1.9
@@ -212,13 +205,12 @@
 (defparameter *kbus4* (bus-control))
 (play (out.kr *kbus3* (range (sin-osc.ar 3) 340 540)))
 (play (out.kr *kbus4* (range (lf-pulse.kr 6) 240 640)))
-(defsynth switch (&key (freq 440))
+(defsynth switch ((freq 440))
   (out.ar 0 (sin-osc.ar freq 0 0.3)))
-(defparameter *x* (switch))
-;; Currently the only way to route a control bus to a synth's arg is:
+(defparameter *x* (synth 'switch))
 ;; (see https://github.com/byulparan/cl-collider/issues/33)
-(sc::send-message *s* "/n_map" (sc::id *x*) "freq" (busnum *kbus3*))
-(sc::send-message *s* "/n_map" (sc::id *x*) "freq" (busnum *kbus4*))
+(map-bus *x* :freq (busnum *kbus3*))
+(map-bus *x* :freq (busnum *kbus4*))
 
 ;;; Figure 1.10
 (play
@@ -299,30 +291,34 @@
 ;;;
 
 ;;; Figure 1.18
-(play
- (flet ((rrand (mi ma)
-	  (+ mi (random (- ma mi)))))
-   (let ((num-res 5)
-	 (bells 20)
-	 (scale (mapcar #'midicps '(60 62 64 67 69))))
-     (loop :repeat bells
-	   :for freqs := (loop :repeat num-res
-			       :collect(* (1+ (random 15))
-					  (alexandria:random-elt scale)))
-	   :for amps := (loop :repeat num-res
-			      :collect (rrand 0.3 0.9))
-	   :for rings := (loop :repeat num-res
-			       :collect (rrand 1.0 4.0))
-	   :for specs := (list freqs amps rings)
-	   :for pan := (softclip (lf-noise1.kr (* 2 (+ 3 (random 4)))))
-	   :do (print specs)
-	   :collect (pan2.ar (klank.ar specs
-				       (dust.ar 1/6 0.03))
-			     pan)))))
+(play (mix 
+  (flet ((rrand (mi ma)
+	   (+ mi (random (- ma mi)))))
+    (let ((num-res 5)
+	  (bells 20)
+	  (scale (mapcar #'midicps '(60 62 64 67 69))))
+      (loop :repeat bells
+	    :for freqs := (loop :repeat num-res
+				:collect(* (1+ (rrand 1 15))
+					   (alexandria:random-elt scale)))
+	    :for amps := (loop :repeat num-res
+			       :collect (rrand 0.3 0.9))
+	    :for rings := (loop :repeat num-res
+				:collect (rrand 1.0 4.0))
+	    :for specs := (mapcar (lambda (y) (mapcar (lambda (x)
+							(round x 0.01))
+						      y))
+				  (list freqs amps rings))
+	    :for pan := (softclip (lf-noise1.kr (* (rrand 3 6) 2)))
+	    :do (print specs)
+	    :collect (pan2.ar (klank.ar specs
+					(dust.ar 1/6 0.03))
+			      pan))))))
 ;;;
 
 ;;; Figure 1.19
-(defsynth simple-blip (&key (midi 60) (tone 10) (art 0.125) (amp 0.2) (pan -1))
+
+(defsynth simple-blip ((midi 60) (tone 10) (art 0.125) (amp 0.2) (pan -1))
   (let ((out (pan2.ar (* (blip.ar (midicps midi) tone)
 			 (env-gen.kr (perc 0.01 art)))
 		      pan))
@@ -360,25 +356,23 @@
 
 ;;; Figure 1.22 - Solutions
 (play
- (flet ((round-to (n d)
-	  (* (round n d) d)))
-  (let* ((rate 3.0)
-	 (trigger (impulse.kr rate))
-	 (control (lf-noise0.kr rate))
-	 (carrier (+ (* control 24) 60))
-	 ;; (mod-ratio (+ control 5))
-	 (mod-ratio (sin-osc.ar 1/5 0 1 5))
-	 ;; (index (+ (* control 7) 8))
-	 (index (lf-noise1.kr 1/5 7 8))
-	 (carrier-f (midicps carrier)))
-    (poll.kr trigger carrier "carrier")
-    (poll.kr trigger index "index")
-    (poll.kr trigger mod-ratio "mod-ratio")
-    (pm-osc.ar carrier-f (round-to (* carrier-f mod-ratio) 0.125) index))))
+ (let* ((rate 3.0)
+	(trigger (impulse.kr rate))
+	(control (lf-noise0.kr rate))
+	(carrier (+ (* control 24) 60))
+	;; (mod-ratio (+ control 5))
+	(mod-ratio (sin-osc.ar 1/5 0 1 5))
+	;; (index (+ (* control 7) 8))
+	(index (lf-noise1.kr 1/5 7 8))
+	(carrier-f (midicps carrier)))
+   (poll.kr trigger carrier "carrier")
+   (poll.kr trigger index "index")
+   (poll.kr trigger mod-ratio "mod-ratio")
+   (pm-osc.ar carrier-f (round (* carrier-f mod-ratio) 0.125) index)))
 ;;;
 
 ;;; Figure 1.23
-(defsynth pm-osc-ex (&key (left 10) (right 10) (index-low 4) (index-high 12))
+(defsynth pm-osc-ex ((left 10) (right 10) (index-low 4) (index-high 12))
   (let* ((trigger (impulse.kr [left right]))
 	 (pitch (round (t-rand.kr 36 72 trigger) 1))
 	 (timbre (lf-noise0.kr 1/20 0.2 2))
@@ -388,7 +382,7 @@
 	 (out (pm-osc.ar pitch (* pitch timbre) index 0 env)))
     (out.ar 0 out)))
 
-(defparameter *a* (pm-osc-ex))
+(defparameter *a* (synth 'pm-osc-ex))
 
 (ctrl *a* :left 4)
 (ctrl *a* :right 5)
@@ -397,7 +391,7 @@
 ;;;
 
 ;;; Figure 1.24
-(defsynth latch-demo (&key (rate 9))
+(defsynth latch-demo ((rate 9))
   (let* ((latch-rate (* rate (lf-noise0.kr 1/10 0.03 1.6)))
 	 (index (latch.kr (lf-saw.kr latch-rate 0 5 6)
 			  (impulse.kr rate)))
@@ -419,7 +413,7 @@
 			 env)))
     (out.ar 0 out)))
 
-(defparameter *a* (latch-demo))
+(defparameter *a* (synth 'latch-demo))
 
 (ctrl *a* :rate 10)
 (ctrl *a* :rate 15)
