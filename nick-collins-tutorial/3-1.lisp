@@ -38,6 +38,7 @@
 (release *a*) ; it's not possible to specify the fade out time
 
 ;; Using a gate argument:
+;; (play doesn't accept arguments so it's necessary to define a synth)
 (defsynth env-release ((gate 1))
   (out.ar '(0 1)
 	  (* (env-gen.ar (asr 0.1 0.1 0.9) :gate gate :act :free)
