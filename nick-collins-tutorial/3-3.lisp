@@ -42,6 +42,9 @@
 	    (synth 'event)
 	    (sleep 0.25))))
 
+
+;;; TODO: tempo clock
+
 ;;; schedule things in the future using functionality provided by clocks
 
 (at (+ 1.0 (now))
