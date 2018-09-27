@@ -39,3 +39,4 @@
 
 (synth 'sound2)
 
+;;; TODO: rest of chapter 
