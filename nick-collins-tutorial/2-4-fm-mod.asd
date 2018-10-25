@@ -3,5 +3,6 @@
   :depends-on ("qtools"
 	       "qtcore"
 	       "qtgui"
+	       "qtools-elements"
 	       "cl-collider")
   :components ((:file "2-4-fm-mod")))

@@ -19,7 +19,7 @@
 
 ;;; Frequency Modulation
 
-;;; For an example of how to create a gui with commonqt/qtools
+;;; For an example of how to create a GUI with commonqt/qtools
 ;;; see 2-4-fm-mod.asd and 2-4-fm-mod.lisp.
 ;;; To try the application run at the repl:
 (ql:quickload "2-4-fm-mod")

@@ -6,53 +6,60 @@
 (in-package #:2-4-fm-mod)
 (in-readtable :qtools)
 
+
 ;;; Define GUI
 
-;;; TODO: exponential slider
-
 (define-widget main-window (QWidget)
-	       ())
+  ())
 
-(defmacro with-slider ((val layout-name text min max default) &body body)
-  (alexandria:with-gensyms (label slider spinbox)
-    `(progn
-       (define-subwidget (main-window ,label) (q+ make-qlabel ,text))
-       (define-subwidget (main-window ,slider) (q+ make-qslider 1)
-	 (setf (q+ minimum ,slider) ,min)
-	 (setf (q+ maximum ,slider) ,max)
-	 (setf (q+ value ,slider) ,default)
-	 (setf (q+ minimum-width ,slider) 300))
-       (define-subwidget (main-window ,spinbox) (q+ make-qspinbox)
-	 (setf (q+ minimum ,spinbox) ,min)
-	 (setf (q+ maximum ,spinbox) ,max)
-	 (setf (q+ value ,spinbox) ,default))
-       (define-subwidget (main-window ,layout-name) (q+ make-qhboxlayout)
-	 (q+ add-widget ,layout-name ,label)
-	 (q+ add-widget ,layout-name ,slider)
-	 (q+ add-widget ,layout-name ,spinbox))
-       (define-slot (main-window ,slider) ((,val int))
-	 (declare (connected ,slider (value-changed int)))
-	 (setf (q+ value ,spinbox) ,val)
-	 ,@body)
-       (define-slot (main-window ,spinbox) ((,val int))
-	 (declare (connected ,spinbox (value-changed int)))
-	 (setf (q+ value ,slider) ,val)
-	 ,@body))))
+(define-subwidget (main-window carrier-freq)
+    (make-instance 'qte:slider
+		   :minimum 20
+		   :maximum 5000
+		   :stepping 0.1
+		   :default 440
+		   :caption "Carrier Frequency"
+		   :curve :exp))
 
-(with-slider (val slider1 "Carrier Frequency" 20 5000 440)
-  (ctrl :synth :carr-freq val))
+(define-slot (main-window carrier-freq) ((value double))
+  (declare (connected carrier-freq (value-changed double)))
+  (ctrl :synth :carr-freq value))
 
-(with-slider (val slider2 "Mod Frequency" 1 5000 1)
-  (ctrl :synth :mod-freq val))
+(define-subwidget (main-window mod-freq)
+    (make-instance 'qte:slider
+		   :minimum 1
+		   :maximum 5000
+		   :stepping 0.1
+		   :default 1
+		   :caption "Mod Frequency"
+		   :curve :exp))
 
-(with-slider (val slider3 "Mod Depth" 0 5000 0)
-  (ctrl :synth :mod-depth val))
+(define-slot (main-window mod-freq) ((value double))
+  (declare (connected mod-freq (value-changed double)))
+  (ctrl :synth :mod-freq value))
+
+(define-subwidget (main-window mod-depth)
+    (make-instance 'qte:slider
+		   :minimum 0.01
+		   :maximum 5000
+		   :stepping 0.01
+		   :default 0.01
+		   :caption "Mod Depth"
+		   :curve :exp))
+
+(define-slot (main-window mod-depth) ((value double))
+  (declare (connected mod-depth (value-changed double)))
+  (ctrl :synth :mod-depth value))
 
 (define-subwidget (main-window layout) (q+:make-qvboxlayout main-window)
   (setf (q+:window-title main-window) "2.4: FM")
-  (q+:add-layout layout slider1)
-  (q+:add-layout layout slider2)
-  (q+:add-layout layout slider3))
+  (q+:add-widget layout carrier-freq)
+  (q+:add-widget layout mod-freq)
+  (q+:add-widget layout mod-depth))
+
+(define-override (main-window close-event) (event)
+  (declare (ignore event))
+  (group-free-all))
 
 ;;; Audio
 
