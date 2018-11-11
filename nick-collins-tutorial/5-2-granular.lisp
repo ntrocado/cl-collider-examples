@@ -17,7 +17,9 @@
   (lin-exp (random 1.0) 0 1.0 mi ma))
 
 (defun rand2 (n)
-  (- (random (* 2 n)) n))
+  (if (zerop n)
+      0
+      (- (random (* 2 n)) n)))
 
 ;;; Audio
 
