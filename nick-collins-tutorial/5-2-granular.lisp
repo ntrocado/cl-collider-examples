@@ -21,7 +21,7 @@
 
 ;;; Audio
 
-(defvar *last-val*)
+(defparameter *last-val* 0.0)
 (defparameter *on* t)
 
 (defparameter *b*
@@ -66,7 +66,8 @@
 
 (defun main ()
   (with-main-window (window 'main-window)
-    (bt:make-thread :name main
+    (setf *on* t)
+    (bt:make-thread
      (lambda ()
        (loop :for i :from 0
 	     :for prop := (/ (mod i 300) 300)
@@ -80,4 +81,5 @@
 			:pan (rand2 *last-val*)
 			:dur (+ 0.1 (* *last-val* 0.5)))
 	     :do (sleep (max (+ (* *last-val* 0.2) 0.01)
-			     0.01)))))))
+			     0.01)))))
+    :name 'granular))
