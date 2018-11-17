@@ -34,3 +34,29 @@
 		   :pos (env-at env time)
 		   :dur (+ 0.01 (random 0.04)))
 	:do (sleep grain-spacing)))
+
+;;; load another buffer
+
+(defparameter *c*
+  (buffer-read
+   (merge-pathnames #p"sounds/sinedpink.aiff"
+		    (make-pathname
+		     :directory (pathname-directory *sc-synth-program*)))))
+
+;;; granular cross fade
+
+(defun coin (bias)
+  (< (random 1.0) bias))
+
+(let ((grain-spacing 0.05)
+      (mix-probability (env '(0.0 1.0 0.0) '(3.0 2.0))))
+  (loop :for count :below 100
+	:for time := (* count grain-spacing)
+	:do (synth 'short-sample
+		   :buffer (if (coin (env-at mix-probability time))
+			       *c*
+			       *b*)
+		   :pos (* time 0.1)
+		   :dur (* grain-spacing 4.0)
+		   :amp 0.25)
+	:do (sleep grain-spacing)))
