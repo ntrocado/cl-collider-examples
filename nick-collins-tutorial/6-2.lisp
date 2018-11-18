@@ -15,7 +15,9 @@
 (free *h*)
 (ctrl *g* :freq 550)
 
+
 ;;; here is an additional example
+
 (defparameter *b*
   (buffer-read
    (merge-pathnames #p"sounds/a11wlk01.wav"
@@ -46,5 +48,4 @@
 			 :start-pos "c1"))
 
 (ctrl *a* :start-pos "c")
-
 (ctrl *a* :start-pos 30000)
