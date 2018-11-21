@@ -43,4 +43,27 @@
 	(amplitude (reciprocal (max absolute-rd 1.0))))
    (pan2.ar (* amplitude doppler-shift) 0.0)))
 
+;; More complicated...
+
+(play
+ (let* ((source (saw.ar (demand.kr (impulse.kr (lf-noise0.kr 0.5 0.1 2))
+				   0 (d-seq (mapcar #'midicps '(63 60)) +inf+))))
+	(side 5)
+	(distance (env-gen.ar (env '(34 -34) '(10)) :act :free))
+	;; (angle (atan (/ distance side)))
+	(absolute-rd (sqrt (+ (squared distance) (squared side))))
+	(doppler-shift (delay-c.ar source 1.0 (/ absolute-rd 340.0)))
+	(amplitude (reciprocal (max absolute-rd 1.0))))
+   (pan2.ar (* amplitude doppler-shift) 1.0)))
+
+
+;;; Further sound transformation facilities
+
+;; TODO add Ugen to cl-collider
+(play
+ (freq-shift.ar (* (mix (sin-osc.ar (mapcar (alexandria:curry #'* 100)
+					    (alexandria:iota 6 :start 1))))
+		   0.1)
+		(mouse-x.kr 0 1000)
+		(mouse-y.kr 0 (* 2 pi))))
 
