@@ -59,11 +59,25 @@
 
 ;;; Further sound transformation facilities
 
-;; TODO add Ugen to cl-collider
+;; no audible effect of phase shifts
 (play
  (freq-shift.ar (* (mix (sin-osc.ar (mapcar (alexandria:curry #'* 100)
 					    (alexandria:iota 6 :start 1))))
 		   0.1)
 		(mouse-x.kr 0 1000)
 		(mouse-y.kr 0 (* 2 pi))))
+
+;; unless you wibble phase quickly enough
+(play
+ (freq-shift.ar (* (mix (sin-osc.ar (mapcar (alexandria:curry #'* 100)
+					    (alexandria:iota 6 :start 1))))
+		   0.1)
+		(mouse-x.kr 0 1000)
+		(sin-osc.ar (mouse-y.kr 0 100))))
+
+;; fun effects on audio input
+(play
+ (freq-shift.ar (sound-in.ar 0 0.1)
+		(mouse-x.kr 0 3000)
+		(sin-osc.ar (mouse-y.kr 0 100))))
 
