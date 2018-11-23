@@ -81,3 +81,35 @@
 		(mouse-x.kr 0 3000)
 		(sin-osc.ar (mouse-y.kr 0 100))))
 
+
+;;; Warp1
+
+(defparameter *b*
+  (buffer-read
+   (merge-pathnames #p"sounds/a11wlk01.wav"
+		    (make-pathname
+		     :directory (pathname-directory *sc-synth-program*)))))
+
+;; overlaps eight windows of 0.1 seconds
+(play (warp1.ar 1 *b* (mouse-x.kr) (expt 2 (mouse-y.kr -2 2)) 0.1))
+
+;; increasingly randomise window shape
+(play (warp1.ar 1 *b* (mouse-x.kr) 1.0 0.1 -1 8 (mouse-y.kr 0.0 0.9)))
+
+
+;;; Overlap Add sretcher
+
+(defsynth window-of-sound ((out 0) (dur 0.0) (bufnum 0) (amp 0.1)
+			   (rate 1.0) (pos 0.0) (pan 0.0))
+  (declare (ignore amp))
+  (let ((env (env-gen.ar (env '(0 1 0)
+			      (mapcar (lambda (x) (* x dur)) '(0.5 0.5))
+			      :sine)
+			 :act :free))
+	(source (play-buf.ar 1 bufnum (* (buf-rate-scale.kr bufnum)
+					 rate)
+			     :trig 1.0
+			     :start-pos (* pos (buf-frames.ir bufnum))
+			     :loop 0)))
+    (offset-out.ar out (pan2.ar (* source env) pan))))
+
