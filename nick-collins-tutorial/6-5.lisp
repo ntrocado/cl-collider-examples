@@ -97,7 +97,7 @@
 (play (warp1.ar 1 *b* (mouse-x.kr) 1.0 0.1 -1 8 (mouse-y.kr 0.0 0.9)))
 
 
-;;; Overlap Add sretcher
+;;; Overlap Add stretcher
 
 (defsynth window-of-sound ((out 0) (dur 0.0) (bufnum 0) (amp 0.1)
 			   (rate 1.0) (pos 0.0) (pan 0.0))
@@ -113,3 +113,21 @@
 			     :loop 0)))
     (offset-out.ar out (pan2.ar (* source env) pan))))
 
+(let* ((playback-time 10.0)
+       (grain-size 0.1)
+       (grains-per-second 100)
+       (grain-spacing (/ 1 grains-per-second))
+       (start-rate 1.75)
+       (end-rate 0.25))
+  (loop :for time-done := 0 :then (+ time-done grain-spacing (random 0.01))
+	:for proportion := (/ time-done playback-time)
+	:for rate-now := (+ (* (- 1.0 proportion) start-rate)
+			    (* proportion end-rate))
+	:while (< time-done playback-time)
+	:do (synth 'window-of-sound
+		   :dur (* grain-size (+ 1 (random 0.1)))
+		   :bufnum *b*
+		   :amp (+ 0.09 (random 0.02))
+		   :rate rate-now
+		   :pos proportion)
+	:do (sleep grain-spacing)))
