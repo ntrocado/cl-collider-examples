@@ -1,4 +1,4 @@
-;;; SuperCollider's pattern system is for a good part emulated in the cl-patterns library.
+;;; SuperCollider's pattern system is emulated, for a good part, in the cl-patterns library.
 
 (ql:quickload :cl-patterns/supercollider)
 
@@ -35,6 +35,7 @@
 ;;; Stop everything with:
 (clock-clear-tasks)
 
+
 (play (pbind :freq 770))
 
 (play (pbind :freq (pseq '(100 200 300))))
@@ -69,6 +70,7 @@
 	       :amp (p* a 0.1))))
 
 
+;;; Nesting
 (pseq (list (pseq '(100 200 300) 2) 400 500 600))
 
 (play (pbind :freq (pseq (list (pseq '(100 200 300) 2) 400 500 600))))
@@ -81,7 +83,7 @@
       :repeat 20
       :do (print (next a)))
 
-
+;;; Let's bring some of the hidden variables into view
 (let ((*clock* (make-clock 1.5)))
   (play (pbind :freq (pseq '(440 660 990 880 770))
 	       :dur (pseq '(1.0 0.5))
@@ -89,7 +91,7 @@
 	       :pan (pseq '(0.5 -0.5))
 	       :instrument :default)))
 
-
+;;; Run me first
 (in-package :sc-user)
 
 (defsynth alicepavelinstr ((out 0) (alice 440) (pavel 0.5) (pan 0.0) (gate 1))
@@ -107,9 +109,17 @@
 	     :legato 0.5
 	     :instrument :alicepavelinstr))
 
-;;; Cobinding of properties: AFAIK there's not direct way to translate this example, even though there are many ways of achieving the same result.
+;;; Cobinding of properties: AFAIK there's not direct way to translate this example, even though there are ways of achieving the same result. For example:
+(let ((properties `((440 0.4)
+		    (330 0.1)
+		    (,(pfin (pfunc (lambda () (random 550)))
+			    1)
+		     ,(pfin (pfunc (lambda () (range 0.8)))
+			    1)))))
+  (play (pbind :freq (pseq (mapcar #'first properties))
+	       :amp (pseq (mapcar #'second properties)))))
 
-
+;;; Checking already decides properties
 (play (pbind :freq (pseq (list 440 330 (pfin (pfunc (lambda ()
 						      (+ (random 550) 40)))
 					     1)))
@@ -122,6 +132,7 @@
 			       0.05)))))
 
 
+;;; Two simultaneous voices using ppar
 (let* ((melody-vals '((60 0.75) (64 0.5) (66 0.5) (69 0.25)
 		      (67 0.75) (64 0.5) (60 0.5) (57 0.25)))
        (melody-pat (pbind :midinote (pseq (mapcar #'first melody-vals))
@@ -131,6 +142,7 @@
   (play (ppar (list melody-pat bass-pat))))
 
 
+;;; Henon map/attractor
 ;;; Common Lisp doesn't come with co-routines, but this is a possible translation:
 
 (let ((x0 0)
@@ -158,3 +170,45 @@
 	       :dur 0.375))
   (sleep 4.0)
   (play *b*))
+
+
+;;; Normal patterns without pbind
+
+;;; Run me first
+(in-package :sc-user)
+
+(defsynth pulsepan (freq)
+  (out.ar 0 (pan2.ar (* (lf-cub.ar (* freq 0.5) (rand.ir 0.4 0.6) 0.2)
+			(x-line.kr 0.001 1.0 0.9 :act :free))
+		     (rand.ir -1.0 1.0))))
+
+(in-package :cl-patterns)
+
+(let ((p (as-pstream (pseq (list 100 200 300 330 478 (prand '(987 789) 1))))))
+  (loop :repeat 10 ;otherwise infinite
+	:for next := (next p)
+	:do (sc:synth 'pulsepan :freq next)
+	:do (sleep 0.5)))
+
+
+;;; SynthDescLib
+
+(in-package :sc-user)
+
+(defsynth nickinstr ((out 0) (freq 440) (amp 0.1) (pan 0) (gate 1))
+  (let ((z (* (lpf.ar (mix (lf-saw.ar (mapcar (lambda (x) (* x freq))
+				      	      '(0.99 1 1.01))
+				      0.0 amp))
+		      (x-line.kr 5000 1000 1.5))
+	      (env-gen.kr (env '(0 1 0) '(0.01 0.01) :lin 1)
+			  :gate gate
+			  :act :free))))
+    (out.ar out (pan2.ar z pan))))
+
+(in-package :cl-patterns)
+
+(play (pbind :dur 1.25
+	     :midinote (pseq (mapcar (alexandria:curry #'+ 60) '(0 5 0 7 4 0 0)))
+	     :amp (prand '(0.125 0.2 0.25))
+	     :instrument (pseq '(:nickinstr :default))
+	     :pan (prand '(-1 0 1))))
