@@ -2,7 +2,7 @@
 ;;;; Chapter 1
 
 ;;; Load cl-collider and boot the server
-(ql:quickload "sc")
+(ql:quickload "cl-collider")
 (in-package :sc-user)
 (setf *s* (make-external-server "localhost" :port 4444))
 (server-boot *s*)
@@ -26,7 +26,6 @@
 					       (line.kr 1 -1 30))))
 			   (- 1 (random 2.0))))
 	   sines))))
-;;;
 
 ;;; 1.2 Messages and Arguments
 
@@ -36,7 +35,6 @@
 (play (comb-n.ar (sin-osc.ar (midicps (lf-noise1.ar 3 24 (lf-saw.ar '(5 5.123) 0 3 80)))
 			     0 0.4)
 		 1 0.3 2))
-;;;
 
 ;;; 1.4 Receiver.message, Comments
 
@@ -67,11 +65,11 @@
 		 0				  ; attack
 		 0.5				  ; sustain
 		 (/ 1 (line.kr 1 20 60)))))	  ; trigger
-;;;
 
 ;;; 1.8 Variables
 
-(play (let ((r (mouse-x.kr 1/3 10))) (sin-osc.ar 440 0 (linen.kr (impulse.kr r) 0 1 (/ 1 r)))))
+(play (let ((r (mouse-x.kr 1/3 10)))
+	(sin-osc.ar 440 0 (linen.kr (impulse.kr r) 0 1 (/ 1 r)))))
 
 ;;; Figure 1.5
 (defparameter *p*
@@ -83,7 +81,6 @@
      (blip.ar (* f 100) f e))))
 
 (free *p*)
-;;;
 
 ;;; Figure 1.6
 (play
@@ -99,7 +96,6 @@
 		    700))
 	(mod-ratio (mouse-x.kr 1 2.0)))
    (* 0.3 (pm-osc.ar carrier (* carrier mod-ratio) 12))))
-;;;
 
 ;;; 1.9 Synth Definitions
 
@@ -153,12 +149,15 @@
 
 ;; Then run this a bunch of times:
 (synth 'pm-crotale :midi (+ 48 (random 24)) :tone (+ 1 (random 5)))
-;;;
 
 ;;; 1.10 Buses, Buffers, and Nodes
 
-(defparameter *houston* (buffer-read "c:/Program Files/SuperCollider-3.8.0/sounds/a11wlk01-44_1.aiff"))
-(defparameter *chouston* (buffer-read "c:/Program Files/SuperCollider-3.8.0/sounds/a11wlk01.wav"))
+(defparameter *houston*
+  (buffer-read (merge-pathnames #p"sounds/a11wlk01-44_1.aiff"
+				*sc-synth-program*)))
+(defparameter *chouston*
+  (buffer-read (merge-pathnames #p"sounds/a11wlk01.wav"
+				*sc-synth-program*)))
 
 (play (play-buf.ar 1 *houston*))
 (play (play-buf.ar 1 *chouston*))
@@ -174,9 +173,14 @@
 	(trigger (impulse.kr rate)))
    (play-buf.ar 1 *houston* 1 :trig trigger :start-pos (* frames!
 							  (line.kr 0 1 60)
-							  (env-gen.kr (linen 0.01 0.96 0.01 trigger))
+							  (env-gen.kr (linen 0.01 0.96 0.01) :gate trigger)
 							  rate))))
-;;;
+
+;;; Speed and direction change
+(play
+ (let ((speed (+ (* (lf-noise0.ar 12) 0.2) 1))
+       (direction (lf-clip-noise.kr 1/3)))
+   (play-buf.ar 1 *houston* (* speed direction) :loop 1)))
 
 ;;; Figure 1.9
 (progn
@@ -199,7 +203,7 @@
    (let ((speed (+ (* (in.kr *kbus1* 1) 0.2) 1))
 	 (direction (in.kr *kbus2*)))
      (out.ar 1 (play-buf.ar 1 *houston* (* speed direction) :loop t))))
-;;;
+
 
 (defparameter *kbus3* (bus-control))
 (defparameter *kbus4* (bus-control))
@@ -221,7 +225,6 @@
  (let* ((source (play-buf.ar 1 *chouston* 1 :loop t))
 	(delay (allpass-c.ar source 2 '(0.65 1.15) 10)))
    (out.ar 0 (+ (pan2.ar source) delay))))
-;;;
 
 ;;; Figure 1.11
 ;; Create and name buses
@@ -255,9 +258,39 @@
       :to *pb-group*)
 (play (out.ar *gate* (pan2.ar (play-buf.ar 1 1 *chouston* :loop t) 0.5))
       :to *pb-group*)
-;;;
 
 ;;; 1.11 Arrays, Iteration, and Logical Expressions
+
+;;; Figure 1.12
+(let ((a '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B")))
+  (loop :for count :upto 50
+	:for p := (+ (random 36) 36)
+	:do (print (list count p (elt a (mod p (length a))) (- (round (/ p 12)) 1)))
+	:do (sleep 1)))
+
+;;; Figure 1.13
+(defun coin (val)
+  (> val (random 1.0)))
+
+(defparameter *stop-this* nil)
+
+(let ((a '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"))
+      (density 0.7))
+  (loop :while (not *stop-this*)
+	:for midi := (alexandria:random-elt '(0 2 4 7 9))
+	:for oct := (alexandria:random-elt '(48 60 72))
+	:if (coin density)
+	  :do (print (list (+ midi oct) (elt a midi) (round (/ oct 12))))
+	  :and :do (synth 'pm-crotale
+		   	  :midi (+ midi oct)
+		   	  :tone (+ 1 (random 6))
+		   	  :art (+ 0.3 (random 1.7))
+		   	  :amp (+ 0.3 (random 0.3))
+		   	  :pan (- 1 (random 2.0)))
+	:else :do (print "rest")
+	:do (sleep 0.2)))
+
+(setf *stop-this* t) ; Eval this to stop.
 
 ;;; 1.12 How to "Do" an Array
 
@@ -277,7 +310,6 @@
 		    (sin-osc.ar (* 5 fund) 0 (max 0 (lf-noise1.kr 12))))
 		 (* 1/6
 		    (sin-osc.ar (* 6 fund) 0 (max 0 (lf-noise1.kr 12)))))))))
-;;;
 
 ;;; Figure 1.16
 (play (* 0.7 (mix
@@ -288,7 +320,6 @@
 				   (max '(0 0)
 					(sin-osc.kr (/ (1+ count) 4))))
 		       (/ 1 (1+ count)))))))
-;;;
 
 ;;; Figure 1.18
 (play (mix 
@@ -314,7 +345,6 @@
 	    :collect (pan2.ar (klank.ar specs
 					(dust.ar 1/6 0.03))
 			      pan))))))
-;;;
 
 ;;; Figure 1.19
 
@@ -337,7 +367,6 @@
    (sin-osc.ar (poll.kr trigger (abs control)))))
 ;; faux Theremin
 (play (sin-osc.ar (sin-osc.ar 8 0 10 (mouse-x.kr 440 1760 :linear))))
-;;;
 
 ;;; Figure 1.22
 (play
@@ -352,7 +381,6 @@
    (poll.kr trigger index "index")
    (poll.kr trigger mod-ratio "mod-ratio")
    (pm-osc.ar carrier-f (* carrier-f mod-ratio) index)))
-;;;
 
 ;;; Figure 1.22 - Solutions
 (play
@@ -369,7 +397,6 @@
    (poll.kr trigger index "index")
    (poll.kr trigger mod-ratio "mod-ratio")
    (pm-osc.ar carrier-f (round (* carrier-f mod-ratio) 0.125) index)))
-;;;
 
 ;;; Figure 1.23
 (defsynth pm-osc-ex ((left 10) (right 10) (index-low 4) (index-high 12))
@@ -388,7 +415,6 @@
 (ctrl *a* :right 5)
 (ctrl *a* :index-low 1)
 (ctrl *a* :index-high 4)
-;;;
 
 ;;; Figure 1.24
 (defsynth latch-demo ((rate 9))
@@ -420,7 +446,6 @@
 (ctrl *a* :rate 6)
 
 (free *a*)
-;;;
 
 ;;; 1.15 When Bad Code Happens to Good People (Debugging)
 
@@ -454,4 +479,3 @@
    ;; (poll.kr 100 burst "burst")
    ;; (pprint (list freqs amps rings))
    (+ bell delay)))
-;;;
