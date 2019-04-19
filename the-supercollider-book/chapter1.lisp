@@ -428,6 +428,13 @@
 (in-package :sc-user)
 
 ;;; Figure 1.20
+(play (let* ((trigger (impulse.kr 10))
+	     (wave (sin-osc.kr 1/10))
+	     (scale 1)
+	     (offset 0)
+	     (wave (+ (* wave scale) offset))
+	     (label (format nil "scale = ~a, offset = ~a" scale offset)))
+	(poll.kr trigger (round wave 0.01) label)))
 
 ;;; Figure 1.21
 (play

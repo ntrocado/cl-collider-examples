@@ -1,11 +1,10 @@
 #+STARTUP: indent
 #+STARTUP: nologdone
-#+TODO: TODO STARTED | DONE N/A
+# #+TODO: TODO STARTED | DONE N/A
 
 * Tutorials
-** STARTED 1 Beginner's Tutorial
-All done except:
-- [ ] missing Figure 1.20
+** DONE 1 Beginner's Tutorial
+Complete!
 ** TODO 2 The Unit Generator
 ** TODO 3 Composition with SuperCollider
 ** TODO 4 Ins and Outs: SuperCollider and External Devices
