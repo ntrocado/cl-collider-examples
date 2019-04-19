@@ -1,3 +1,6 @@
+;;;; Supercollider Book - Lisp version of the code
+;;;; Chapter 15
+
 ;;; Figure 15.1
 (defparameter *x*
   (play (let* ((in (sound-in.ar 0))
@@ -9,9 +12,7 @@
 
 (free *x*)
 
-
 ;;; Figure 15.2 Loudness
-
 (defparameter *b* (buffer-alloc 1024 :chanls 1))
 
 (defparameter *x*
@@ -24,9 +25,7 @@
 (free *x*)
 (buffer-free *b*)
 
-
 ;;; Figure 15.3 MFCC
-
 (defparameter *b* (buffer-alloc 1024 :chanls 1))
 
 (defparameter *x*
@@ -42,9 +41,7 @@
 (print (loop :for i :from 0 :below 13
 	     :collect (control-get i)))
 
-
 ;;; Figure 15.4 Onsets
-
 (defparameter *b* (buffer-alloc 512))
 
 (defparameter *x*
@@ -65,9 +62,7 @@
 (remove-reply-responder "/tr")
 (buffer-free *b*)
 
-
 ;;; Figure 15.5
-
 (defparameter *b* (buffer-alloc 1024 :chanls 1))
 
 (defsynth beat-track ()
@@ -94,9 +89,7 @@
 (free *x*)
 (buffer-free *b*)
 
-
 ;;; Figure 15.6 KeyTrack
-
 (defparameter *d* (buffer-read "/path/to/soundfile"))
 
 (defparameter *b* (buffer-alloc 4096 :chanls 1))
@@ -112,13 +105,9 @@
 (free *x*)
 (buffer-free *b*)
 
-
 ;;; Figure 15.7 Simple melodic transcription
-
 ;;; TODO
 ;;; with SendTrig instead of SharedOut
 
 ;;; Figure 15.8 OnlineMIDI
-
 ;;; cl-collider doesn't have midi built-in
-
