@@ -1,6 +1,6 @@
 #+STARTUP: indent
 #+STARTUP: nologdone
-# #+TODO: TODO STARTED | DONE N/A
+#+TODO: TODO | STARTED | DONE N/A
 
 * Tutorials
 ** DONE 1 Beginner's Tutorial
