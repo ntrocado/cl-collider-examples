@@ -347,7 +347,6 @@
 			      pan))))))
 
 ;;; Figure 1.19
-
 (defsynth simple-blip ((midi 60) (tone 10) (art 0.125) (amp 0.2) (pan -1))
   (let ((out (pan2.ar (* (blip.ar (midicps midi) tone)
 			 (env-gen.kr (perc 0.01 art)))
@@ -355,7 +354,31 @@
 	(amp (- amp (* (- midi 60) 0.02))))
     (detect-silence.ar out 1 :act :free)
     (out.ar 0 (* out amp))))
-;;; ...
+
+(defparameter *inst* (make-array 3))
+(defparameter *pseq* (make-array 3))
+(defparameter *scale* (make-array 1 :adjustable t))
+(defparameter *scale-add* '(4 5 11 nil 10 3 6 nil))
+(defparameter *notes* '(" C" " C#" " D" " Eb" " E" " F" " F#" " G" " Ab" " A" " Bb" " B"))
+(defparameter *stop-me* nil)
+
+(loop :while (not *stop-me*)
+      :for cnt :from 0
+      :for steps := (+ 6 (random 6))
+      :when (zerop (mod cnt1 6))
+	:do (vector-push-extend (elt *scale-add* (- (round (mod cnt1 6)) 1))
+				*scale*)
+      :do (format t "~%Iteration: ~a" cnt1)
+      :do (print (elt '("center" "right" "left") (mod cnt1 3)))
+      :when (zerop (mod cnt1 24))
+	:do (setf *scale* (make-array 4 :initial-contents '(0 2 7 9)))
+	:and :do (loop :for cnt2 :below 3
+		       :do (setf (aref *pseq* cnt2)
+				 (loop :for i :upto steps
+				       :collect (+ (alexandria:random-elt *scale*)
+						   (alexandria:random-elt '(48 60))))))
+      :do (format t "scale: ~a" *scale*))
+;;; TODO
 
 ;;; Figure 1.21
 (play
