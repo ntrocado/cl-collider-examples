@@ -1,7 +1,7 @@
 ;;;; Supercollider Book - Lisp version of the code
 ;;;; Chapter 16
 
-(ql:quickload :cl-patterns)
+(ql:quickload "cl-patterns/supercollider")
 
 ;;; Figure 16.1
 
