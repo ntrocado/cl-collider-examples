@@ -1,0 +1,44 @@
+#+STARTUP: indent
+#+STARTUP: nologdone
+#+TODO: TODO STARTED | DONE N/A
+
+* Tutorials
+** STARTED 1 Beginner's Tutorial
+- [ ] missing Figure 1.19
+** TODO 2 The Unit Generator
+** TODO 3 Composition with SuperCollider
+** TODO 4 Ins and Outs: SuperCollider and External Devices
+There's no direct translation for most of the chapter (possible exception: OSC communication), unless other libraries are used in Common Lisp.
+* Advanced tutorials
+** N/A 5 Programming in SuperCollider
+Focused on features of sclang.
+** STARTED 6 Events and Patterns
+Done up to page 190.
+** TODO 7 Just-in-Time Programming
+Difficult to mimic JIT programming in a meaningful way...
+** TODO 8 Object Modeling
+* Platforms and GUI
+** N/A 9 Max OSX GUI
+** N/A 10 SwingOSC
+Specific to SwingOSC.
+** N/A 11 SuperCollider on Windows
+** N/A 12 "Collision with the Penguin": SuperCollider on Linux
+* Practical Applications
+** TODO 13 Sonification and Auditory Display in SuperCollider
+** TODO 14 Spatialization with SuperCollider
+** STARTED 15 Machine Listening in SuperCollider
+Only missing:
+- [ ] Figure 15.7
+** STARTED 16 Microsound
+Barely started.
+** TODO 17 Alternative Tunings with SuperCollider
+** TODO 18 Non-Real-Time Synthesis and Object-Oriented Composition
+* Projects and Perspectives
+** TODO 19 A Binaural Simulation of Varèse's Poème Electronique
+** TODO 20 High-Level Structures for Live Performance: dewdrop_lib and chucklib
+** TODO 21 Interface Investigations
+** TODO 22 SuperCollider in Japan
+** TODO 23Dialects, Constraints, and Systems within Systems
+** TODO 24 The SuperCollider Language Implementation
+** TODO 25 Writing Unit Generator Plug-ins
+** TODO 26 Inside scsynth
