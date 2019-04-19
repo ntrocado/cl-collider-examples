@@ -347,38 +347,87 @@
 			      pan))))))
 
 ;;; Figure 1.19
+
+;;; Adapted for simplicity (in my view at least...)
+;;; Uses the cl-patterns library
+
 (defsynth simple-blip ((midi 60) (tone 10) (art 0.125) (amp 0.2) (pan -1))
   (let ((out (pan2.ar (* (blip.ar (midicps midi) tone)
 			 (env-gen.kr (perc 0.01 art)))
 		      pan))
 	(amp (- amp (* (- midi 60) 0.02))))
-    (detect-silence.ar out 1 :act :free)
+    (detect-silence.ar out 1.0e-4 :act :free)
     (out.ar 0 (* out amp))))
 
+(ql:quickload "cl-patterns/supercollider")
+
+(in-package :cl-patterns)
+
+(defparameter *clock* (make-clock 8))
+
 (defparameter *inst* (make-array 3))
-(defparameter *pseq* (make-array 3))
-(defparameter *scale* (make-array 1 :adjustable t))
-(defparameter *scale-add* '(4 5 11 nil 10 3 6 nil))
-(defparameter *notes* '(" C" " C#" " D" " Eb" " E" " F" " F#" " G" " Ab" " A" " Bb" " B"))
+(defparameter +notes+ '("C" "C#" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"))
 (defparameter *stop-me* nil)
 
-(loop :while (not *stop-me*)
-      :for cnt :from 0
-      :for steps := (+ 6 (random 6))
-      :when (zerop (mod cnt1 6))
-	:do (vector-push-extend (elt *scale-add* (- (round (mod cnt1 6)) 1))
-				*scale*)
-      :do (format t "~%Iteration: ~a" cnt1)
-      :do (print (elt '("center" "right" "left") (mod cnt1 3)))
-      :when (zerop (mod cnt1 24))
-	:do (setf *scale* (make-array 4 :initial-contents '(0 2 7 9)))
-	:and :do (loop :for cnt2 :below 3
-		       :do (setf (aref *pseq* cnt2)
-				 (loop :for i :upto steps
-				       :collect (+ (alexandria:random-elt *scale*)
-						   (alexandria:random-elt '(48 60))))))
-      :do (format t "scale: ~a" *scale*))
-;;; TODO
+(defmacro wrap-elt (sequence index)
+  `(elt ,sequence
+	(mod ,index (length ,sequence))))
+
+(defun scale-steps (scale steps)
+  (loop :for i :upto steps
+	:collect (+ (alexandria:random-elt scale)
+		    (alexandria:random-elt '(48 60)))))
+
+(progn
+  (setf *stop-me* nil)
+  (loop :until *stop-me*
+	:with scale-add := '(4 5 11 nil 10 3 6 nil)
+	:with pseq := (make-array 3)
+	:for cnt1 :from 0
+	:for cnt1%3 := (mod cnt1 3)
+	:for steps := (+ 6 (random 6))
+	:for harm-seq := (loop :repeat steps :collect (+ 1.0 (random 4.0)))
+	:for dur-seq := (loop :repeat steps :collect (+ 0.01 (random 0.89)))
+	:for scale := (cond
+			;; Every 24 times
+			((zerop (mod cnt1 24))
+			 '(0 2 7 9))
+			;; Every 6 times
+			((zerop (mod cnt1 6))
+			 (append (list (wrap-elt scale-add
+						 (- (round (/ cnt1 6)) 1)))
+				 scale))
+			(t scale))
+	:for pitch-seq := (scale-steps scale steps)
+	:for mod12-pitch-seq := (mapcar (alexandria:rcurry #'mod 12) pitch-seq)
+	;; Print values
+	:do (format t "~%Iteration: ~a (~a)~%scale: ~a~%MIDI seq: ~a~%Sequence (notes): ~a~%"
+		    cnt1
+		    (wrap-elt '(center right left) cnt1)
+		    scale
+		    mod12-pitch-seq
+		    (mapcar (alexandria:curry #'elt +notes+) mod12-pitch-seq))
+	;; Stop previous task if present
+	:when (eq (type-of (aref *inst* cnt1%3)) 'task)
+	  :do (stop (aref *inst* cnt1%3))
+	;; Start new one
+	:do (setf (aref *inst* cnt1%3)
+		  (play (pbind :instrument :simple-blip
+			       :midi (pwalk pitch-seq 1)
+			       :tone (pwalk harm-seq 1)
+			       :art (pwalk dur-seq 1)
+			       :amp (+ 0.1 (random 0.2))
+			       :pan (wrap cnt1 -1 2))))
+	:do (sleep 12)))
+
+(setf *stop-me* t) ; Stop new sequences
+(stop (aref *inst* 0)) ; Stop center sequence 
+(stop (aref *inst* 1)) ; Stop right sequence
+(stop (aref *inst* 2)) ; Stop left sequence
+
+(in-package :sc-user)
+
+;;; Figure 1.20
 
 ;;; Figure 1.21
 (play

@@ -4,7 +4,8 @@
 
 * Tutorials
 ** STARTED 1 Beginner's Tutorial
-- [ ] missing Figure 1.19
+All done except:
+- [ ] missing Figure 1.20
 ** TODO 2 The Unit Generator
 ** TODO 3 Composition with SuperCollider
 ** TODO 4 Ins and Outs: SuperCollider and External Devices
