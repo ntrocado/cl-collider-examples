@@ -2,21 +2,26 @@
 
 (ql:quickload :cl-patterns/supercollider)
 
-;;; By default, patterns in SuperCollider play through the midi device. Let's define a default synth instead.
+;;; First we need to define a default synth (mirroring the one in SC)
 
 (in-package :sc-user)
 
-;;; Synth adapted from cl-patterns' documentation
-(defsynth default ((gate 1) (freq 440) (amp 1) (out 0))
-  (let* ((env (env-gen.kr (asr 0.01 1 0.1) :gate gate :act :free))
-	 (sig (sin-osc.ar freq 0 0.2)))
-    (out.ar out (pan2.ar (* amp sig) 0 env))))
+(defsynth default ((out 0) (freq 440) (amp 0.1) (pan 0) (gate 1))
+  (let ((z (* (lpf.ar (mix (var-saw.ar (mapcar (lambda (x) (+ x freq))
+					       (list 0
+						     (- (random 0.4))
+						     (random 0.4)))
+				       0 0.3))
+		      (x-line.kr (+ 4000 (random 1000))
+				 (+ 2500 (random 700))))
+	      (linen.kr gate 0.01 0.7 0.3 :act :free))))
+    (offset-out.ar out (pan2.ar z pan amp))))
 
 ;;; Start the clock
 
 (in-package :cl-patterns)
 
-(defparameter *clock* (make-clock 1))
+(start-clock-loop 60/60)
 
 ;;; Now back to the tutorial...
 
@@ -109,12 +114,12 @@
 	     :legato 0.5
 	     :instrument :alicepavelinstr))
 
-;;; Cobinding of properties: AFAIK there's not direct way to translate this example, even though there are ways of achieving the same result. For example:
+;;; Cobinding of properties: AFAIK there isn't a direct way to translate this example, even though there are ways of achieving the same result. For example:
 (let ((properties `((440 0.4)
 		    (330 0.1)
 		    (,(pfin (pfunc (lambda () (random 550)))
 			    1)
-		     ,(pfin (pfunc (lambda () (range 0.8)))
+		     ,(pfin (pfunc (lambda () (random 0.8)))
 			    1)))))
   (play (pbind :freq (pseq (mapcar #'first properties))
 	       :amp (pseq (mapcar #'second properties)))))
