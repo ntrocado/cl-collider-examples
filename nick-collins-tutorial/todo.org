@@ -1,0 +1,55 @@
+#+STARTUP: nologdone
+#+TODO: TODO | STARTED | DONE N/A
+
+* 1. Introduction and Overview
+** DONE 1.1 Getting Started
+** N/A 1.2 Getting Around in SC3
+** N/A 1.3 Obtaining SC3
+* 2. Sound Synthesis 1: Additive, Subtractive, Modulation
+** DONE 2.1 Subtractive and Additive Synthesis
+** DONE 2.2 Mul and add
+** DONE 2.3 Controlling Synths
+** DONE 2.4 Modulation Synthesis
+** DONE 2.5 More Synthesis Examples
+* 3. Sequencing
+** DONE 3.1 Envelopes
+** DONE 3.2 SynthDefs
+** DONE 3.3 Sequencing
+** DONE 3.4 Server-side Sequencing and Triggers
+** DONE 3.5 Nested Scheduling
+* 4. Interaction 1
+** STARTED 4.1 Interaction 1
+** 4.2 Graphical User Interfaces
+** 4.3 Further GUI Example
+* 5. Sound Synthesis 2: Sample-based, Granular
+** DONE 5.1 Buffers and Sound Files
+** DONE 5.2 Granular Synthesis
+** 5.3 GUI+Loop Example
+** DONE 5.4 Granular Bonus Examples
+* 6. Effects
+** N/A 6.1 Buses
+** DONE 6.2 Control Buses
+** DONE 6.3 Nodes
+** DONE 6.4 Effects 1
+** DONE 6.5 Effects 2
+* 7. Interaction 2
+** STARTED 7.1 Interaction 2
+except MIDI
+* 8. Timing and Psychology of Rhythm
+** TODO 8.1 Precise Timing in SC
+** TODO 8.2 Some Time and Rhythm Demoes
+* 9. Algorithmic Composition
+** TODO 9.1 Algorithmic Strategies
+** DONE 9.2 Patterns
+** TODO 9.3 Probability Distributions (optional)
+* 10. Network Music
+** TODO 10.1 Open Sound Control
+** TODO 10.2 Messaging Style
+** TODO 10.3 Network Music Lab
+** TODO 10.4 Mouse To Lang
+* 11. Sound Synthesis 3: Physical Modelling
+** TODO 11.1 Physical Modelling
+** TODO 11.2 Analogue Modelling
+* 12. Sound Analysis
+** TODO 12.1 FFT
+** TODO 12.2 Singing Voice Synthesis
