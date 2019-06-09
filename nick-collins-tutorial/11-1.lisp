@@ -59,3 +59,207 @@
 (trace make-mode-freqs make-mode-amps)
 
 (play (stiff-string 'steel))
+
+;;; piano sound by James McCartney
+
+;; hear the energy impulse without any comb resonation
+(play
+ (let* ((strike (impulse.ar 0.01))
+	(env (decay2.ar strike 0.008 0.04))
+	(noise (lf-noise2.ar 3000 env)))
+   (* 10 noise)))
+
+;; single strike with comb resonation
+(play
+ (let* ((strike (impulse.ar 0.01))
+	(env (decay2.ar strike 0.008 0.04))
+	(pitch (+ 36 (random 54))))
+   (pan2.ar (mix (loop :for detune :in '(-0.05 0 0.04)
+		       :for delay-time := (/ 1 (midicps (+ pitch detune)))
+		       :collect (comb-l.ar (lf-noise2.ar 3000 env)
+					   delay-time
+					   delay-time
+					   6)))
+	    (/ (- pitch 36) (1- 27)))))
+
+;; synthetic piano patch
+(play
+ (mix (loop :repeat 6
+	    :collect
+	    (let* ((pitch (+ 36 (random 54)))
+		   (strike (impulse.ar (+ 0.1 (random 0.4))
+				       (random (* 2 pi))
+				       0.1))
+		   (hammer-env (decay2.ar strike 0.008 0.04)))
+	      (pan2.ar (mix (loop :for detune :in '(-0.05 0 0.04)
+				  :for delay-time := (/ 1 (midicps (+ pitch detune)))
+				  :collect (comb-l.ar (lf-noise2.ar 3000 hammer-env)
+						      delay-time
+						      delay-time
+						      6)))
+		       (/ (- pitch 36) (1- 27)))))))
+
+;;; Karplus-Strong
+
+(play (pluck.ar (white-noise.ar 0.1)
+		(impulse.kr 1)
+		(reciprocal 440)
+		(reciprocal 440)
+		10
+		(mouse-x.kr -0.999 0.999)))
+
+;;; broken down as individual UGens
+
+(play
+ (let* ((freq 440)
+	(time (reciprocal freq))
+	(ex (white-noise.ar (env-gen.kr (env '(1.0 1.0 0.0 0.0)
+					     `(,time 0 100)))))
+	(local (local-in.ar 1))
+	(filter (lpz-1.ar (+ ex local)))
+	(delay (delay-n.ar filter time (- time (control-dur.ir)))))
+   (poll.kr (impulse.kr 0) (control-dur.ir))
+   (local-out.ar (* delay 0.95))
+   (out.ar 0 (pan2.ar filter 0.0))))
+
+;;; modulate the length of the delay to make a vibrato
+
+(play
+ (let* ((freq 440)
+	(time (reciprocal freq))
+	(ex (white-noise.ar (env-gen.kr (env '(1.0 1.0 0.0 0.0)
+					     `(,time 0 100)))))
+	(freq (sin-osc.ar 6 0 10 freq))
+	(time (reciprocal freq))
+	(local (local-in.ar 1))
+	(filter (lpz-1.ar (+ ex local)))
+	(delay (delay-n.ar filter (reciprocal 430) (- time (control-dur.ir)))))
+   (local-out.ar (* delay 0.99))
+   (out.ar 0 (pan2.ar filter 0.0))))
+
+;;; Contributions from Thor Magnusson
+
+;; we use a noise ugen to generate a burst
+(play
+ (let* ((att 0)
+	(dec 0.001)
+	(burst-env (env-gen.kr (perc att dec)
+			       :gate (impulse.kr 1))))
+   (pink-noise.ar burst-env)))
+
+;; but then we use Comb delay to create the delay line that creates the tone
+
+;; let's create a synthdef using Karplus-Strong
+(defsynth ks-guitar (note pan rand delay-time (noise-type 1))
+  (declare (ignore noise-type))
+  (let* ((env (env '(1 1 0) '(2 0.001)))
+	 (x (decay.ar (impulse.ar 0 0 rand) (+ 0.1 rand) (white-noise.ar)))
+	 (x (comb-l.ar x 0.05 (reciprocal note) delay-time (env-gen.ar env :act :free)))
+	 (x (pan2.ar x pan)))
+    (out.ar 0 (leak-dc.ar x))))
+
+;; and play the synthdef
+(loop :repeat 20
+      :do (synth 'ks-guitar
+		 :note (+ 220 (random 400))
+		 :pan (- (random 2.0) 1.0)
+		 :rand (+ 0.1 (random 0.1))
+		 :delay-time (+ 2 (random 1.0)))
+      :do (sleep (+ (random 1.0) 0.5)))
+
+;; here using patterns
+(ql:quickload :cl-patterns/supercollider)
+(enable-backend :supercollider)
+(start-clock-loop 120/60)
+(in-package :cl-patterns)
+(pb :ks-pattern
+  :instrument :ks-guitar
+  :note (pseq (mapcar #'midinote-freq '(60 61 63 66)))
+  :dur (pseq '(0.25 0.5 0.25 1))
+  :rand (prand '(0.2 0.15 0.15 0.11))
+  :pan (- (random 2.0) 1.0)
+  :delay-time (+ 2.0 (random 1.0)))
+(play :ks-pattern)
+(stop :ks-pattern)
+
+(in-package :sc-user)
+;; compare using whitenoise and pinknoise as an exciter
+;; whitenoise
+(proxy :noise-exciter
+       (let* ((att 0)
+	      (dec 0.001)
+	      (delay-decay 0.5)
+	      (midi-pitch 69)
+	      (delay-time (reciprocal (midicps midi-pitch)))
+	      (burst-env (env-gen.kr (perc att dec) :gate (impulse.kr (/ 1 delay-decay))))
+	      (burst (white-noise.ar burst-env)))
+	 (comb-l.ar burst delay-time delay-time delay-decay 1.0 burst)))
+;; pinknoise
+(proxy :noise-exciter
+       (let* ((att 0)
+	      (dec 0.001)
+	      (delay-decay 0.5)
+	      (midi-pitch 69)
+	      (delay-time (reciprocal (midicps midi-pitch)))
+	      (burst-env (env-gen.kr (perc att dec) :gate (impulse.kr (/ 1 delay-decay))))
+	      (burst (pink-noise.ar burst-env)))
+	 (comb-l.ar burst delay-time delay-time delay-decay 1.0 burst)))
+
+;; note that delay-time is controlling the pitch here
+(defsynth ks-pluck ((midi-pitch 69) (delay-decay 1.0))
+  (let* ((att 0)
+	 (dec 0.001)
+	 (delay-time (mapcar (alexandria:compose #'reciprocal #'midicps)
+			     (list midi-pitch (+ midi-pitch 12))))
+	 (burst-env (env-gen.kr (perc att dec)))
+	 (signal-out (pink-noise.ar burst-env))
+	 (signal-out (comb-l.ar signal-out delay-time delay-time delay-decay 1.0 signal-out)))
+    (detect-silence.ar signal-out 1.0e-4 :act :free)
+    (out.ar 0 signal-out)))
+
+;; then run this payback task
+(defparameter *play* t)
+(loop :while *play*
+      :do (synth 'ks-pluck
+		 :midi-pitch (+ 30 (random 60))
+		 :delay-decay (+ 0.1 (random 2.9)))
+      :do (sleep (alexandria:whichever 0.125 0.125 0.25)))
+(setf *play* nil)
+
+
+;;; Two examples from the STK physical modeling kit
+
+;;; The STK UGens are found within sc3-plugins and are not defined in cl-collider by default.
+;;; Therefore, first we have to define them with defugen...
+
+;; mandolin
+;; (for some reason the mandolin UGen doesn't work on my system, so this is untested...
+(sc::defugen (stk-mandolin "StkMandolin")
+    (&optional (freq 520) (body-size 64) (pick-position 64) (string-damping 69) (string-detune 10) (after-touch 64) (trig 1) (mul 1.0) (add 0.0))
+  ((:ar
+    (madd (sc::multinew sc::new 'sc::ugen freq body-size pick-position string-damping string-detune after-touch trig) mul add))))
+
+(play (* 3 (stk-mandolin.ar)))
+
+;; violin bow
+(sc::defugen (stk-bowed "StkBowed")
+    (&optional (freq 220) (bow-pressure 64) (bow-position 64) (vib-freq 64) (vib-gain 64) (loudness 64) (gate 1) (attack-rate 1) (decay-rate 1) (mul 1.0) (add 0.0))
+  ((:ar
+    (madd (sc::multinew sc::new 'sc::ugen freq bow-pressure bow-position vib-freq vib-gain loudness gate attack-rate decay-rate) mul add))))
+
+(defsynth bow (freq (bow-pressure 64) (bow-position 64) (vib-freq 64) (vib-gain 64) (loudness 64))
+  (let* ((sig (stk-bowed.ar freq bow-pressure bow-position vib-freq vib-gain loudness))
+	 (sig (* sig (env-gen.ar (linen) :act :free))))
+    (out.ar '(0 1) (* sig 10))))
+
+(defparameter *play* t)
+(loop :repeat 100
+      :while *play*
+      :do (synth 'bow
+		 :freq (+ 200 (random 240))
+		 :bow-pressure (+ 22 (random 42))
+		 :bow-position (+ 22 (random 42))
+		 :vib-freq (+ 22 (random 22))
+		 :vib-gain (+ 22 (random 22)))
+      :do (sleep 1))
+(setf *play* nil)

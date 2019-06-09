@@ -49,7 +49,8 @@ focus on language-side stochastic processes
 ** TODO 10.3 Network Music Lab
 ** TODO 10.4 Mouse To Lang
 * 11. Sound Synthesis 3: Physical Modelling
-** STARTED 11.1 Physical Modelling
+** DONE 11.1 Physical Modelling
+The example using StkMandolin is incomplete, because I couldn't get the UGen to work.
 ** TODO 11.2 Analogue Modelling
 * 12. Sound Analysis
 ** TODO 12.1 FFT
