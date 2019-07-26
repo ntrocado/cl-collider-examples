@@ -44,7 +44,7 @@ focus on language-side stochastic processes
 ** DONE 9.2 Patterns
 ** N/A 9.3 Probability Distributions (optional)
 * 10. Network Music
-** STARTED 10.1 Open Sound Control
+** DONE 10.1 Open Sound Control
 ** TODO 10.2 Messaging Style
 ** TODO 10.3 Network Music Lab
 ** TODO 10.4 Mouse To Lang
