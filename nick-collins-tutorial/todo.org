@@ -45,7 +45,7 @@ focus on language-side stochastic processes
 ** N/A 9.3 Probability Distributions (optional)
 * 10. Network Music
 ** DONE 10.1 Open Sound Control
-** TODO 10.2 Messaging Style
+** DONE 10.2 Messaging Style
 ** TODO 10.3 Network Music Lab
 ** TODO 10.4 Mouse To Lang
 * 11. Sound Synthesis 3: Physical Modelling
