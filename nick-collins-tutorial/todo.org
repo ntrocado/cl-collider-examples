@@ -44,14 +44,14 @@ focus on language-side stochastic processes
 ** DONE 9.2 Patterns
 ** N/A 9.3 Probability Distributions (optional)
 * 10. Network Music
-** TODO 10.1 Open Sound Control
+** STARTED 10.1 Open Sound Control
 ** TODO 10.2 Messaging Style
 ** TODO 10.3 Network Music Lab
 ** TODO 10.4 Mouse To Lang
 * 11. Sound Synthesis 3: Physical Modelling
 ** DONE 11.1 Physical Modelling
-The example using StkMandolin is incomplete, because I couldn't get the UGen to work.
-** TODO 11.2 Analogue Modelling
+The example using StkMandolin is incomplete, because I couldn't get the UGen to work (it fails in SC too).
+** STARTED 11.2 Analogue Modelling
 * 12. Sound Analysis
 ** TODO 12.1 FFT
 ** TODO 12.2 Singing Voice Synthesis
