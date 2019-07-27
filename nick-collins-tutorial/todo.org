@@ -46,7 +46,8 @@ focus on language-side stochastic processes
 * 10. Network Music
 ** DONE 10.1 Open Sound Control
 ** DONE 10.2 Messaging Style
-** TODO 10.3 Network Music Lab
+** N/A 10.3 Network Music Lab
+Currently ~defsynth~, ~play~, ~synth~, and ~proxy~ are hardwired to work with a single server, ~*s*~. There are no high level abstractions to load and play synths in multiple servers running in different machines.
 ** DONE 10.4 Mouse To Lang
 * 11. Sound Synthesis 3: Physical Modelling
 ** DONE 11.1 Physical Modelling
