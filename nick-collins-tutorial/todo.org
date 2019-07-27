@@ -47,7 +47,7 @@ focus on language-side stochastic processes
 ** DONE 10.1 Open Sound Control
 ** DONE 10.2 Messaging Style
 ** TODO 10.3 Network Music Lab
-** TODO 10.4 Mouse To Lang
+** DONE 10.4 Mouse To Lang
 * 11. Sound Synthesis 3: Physical Modelling
 ** DONE 11.1 Physical Modelling
 The example using StkMandolin is incomplete, because I couldn't get the UGen to work (it fails in SC too).
