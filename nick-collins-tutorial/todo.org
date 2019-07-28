@@ -54,5 +54,5 @@ Currently ~defsynth~, ~play~, ~synth~, and ~proxy~ are hardwired to work with a 
 The example using StkMandolin is incomplete, because I couldn't get the UGen to work (it fails in SC too).
 ** DONE 11.2 Analogue Modelling
 * 12. Sound Analysis
-** TODO 12.1 FFT
+** DONE 12.1 FFT
 ** TODO 12.2 Singing Voice Synthesis
