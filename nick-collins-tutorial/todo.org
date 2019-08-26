@@ -55,4 +55,4 @@ The example using StkMandolin is incomplete, because I couldn't get the UGen to 
 ** DONE 11.2 Analogue Modelling
 * 12. Sound Analysis
 ** DONE 12.1 FFT
-** STARTED 12.2 Singing Voice Synthesis
+** DONE 12.2 Singing Voice Synthesis
