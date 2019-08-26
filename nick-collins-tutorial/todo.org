@@ -1,4 +1,4 @@
-#+STARTUP: nologdone
+#+STARTUP: nologdone showall indent
 #+TODO: TODO | STARTED | DONE N/A
 
 * 1. Introduction and Overview
