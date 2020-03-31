@@ -249,7 +249,7 @@
 
 (defparameter *gate-syn*
   (play (out.ar (list 0 *mod*) (* (in.ar *gate* 2)
-			    (max 0 (in.kr *k5*))))
+				  (max 0 (in.kr *k5*))))
 	:to *mod-syn* :pos :before))
 
 (defparameter *pb-group* (make-group :pos :before :to *control-syn*))
@@ -558,3 +558,4 @@
    ;; (poll.kr 100 burst "burst")
    ;; (pprint (list freqs amps rings))
    (+ bell delay)))
+
