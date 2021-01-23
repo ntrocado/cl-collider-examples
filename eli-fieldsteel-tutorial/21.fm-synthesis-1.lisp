@@ -1,12 +1,8 @@
 ;;; https://www.youtube.com/watch?v=UoXMUQIqFk4
 
+(load "../util.lisp")
+
 (in-package :sc-user)
-
-(defmacro poll (ugen &optional (freq 10))
-  `(poll.kr (impulse.kr ,freq) ,ugen))
-
-(defun dupl (expr)
-  (make-list 2 :initial-element expr))
 
 (play
  (dupl (* (sin-osc.ar (+ (poll (mouse-y.kr 200 5000 :exp))
