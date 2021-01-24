@@ -11,14 +11,11 @@
 				(list c-atk c-rel))))
 	 (env (env-gen.kr (perc atk rel 1 (list c-atk c-rel))
 			  :act :free))
-	 (mod2 (sin-osc.ar (/ freq 10) 0 (* (/ freq 10) ienv)))
-	 (mod (sin-osc.ar (+ (* freq m-ratio) mod2) 0 (* freq m-ratio ienv)))
+	 (mod (sin-osc.ar (* freq m-ratio) 0 (* freq m-ratio ienv)))
 	 (car (* (sin-osc.ar (+ (* freq c-ratio)
 				mod))
 		 env amp)))
     (out.ar 0 (pan2.ar car pan))))
-
-(synth 'fm :rel 3)
 
 (synth 'fm :freq (midicps 35) :rel 4 :index 20 :i-scale .05 :m-ratio .5)
 
@@ -39,3 +36,19 @@
 (play (dupl (* (pm-osc.ar 500 4 50)
 	       .2)))
 
+
+(defsynth fm2 ((freq 500) (m-ratio 1) (c-ratio 1) (index 1) (i-scale 5)
+	      (amp .2) (atk .01) (rel 3) (c-atk 4) (c-rel -4) (pan 0))
+  (let* ((ienv (env-gen.kr (env (list index (* index i-scale) index)
+				(list atk rel)
+				(list c-atk c-rel))))
+	 (env (env-gen.kr (perc atk rel 1 (list c-atk c-rel))
+			  :act :free))
+	 (mod2 (sin-osc.ar (/ freq 10) 0 (* (/ freq 10) ienv)))
+	 (mod (sin-osc.ar (+ (* freq m-ratio) mod2) 0 (* freq m-ratio ienv)))
+	 (car (* (sin-osc.ar (+ (* freq c-ratio)
+				mod))
+		 env amp)))
+    (out.ar 0 (pan2.ar car pan))))
+
+(synth 'fm2 :rel 3)
