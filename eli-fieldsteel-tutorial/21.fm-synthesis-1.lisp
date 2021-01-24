@@ -1,8 +1,8 @@
 ;;; https://www.youtube.com/watch?v=UoXMUQIqFk4
 
-(load "../util.lisp")
-
 (in-package :sc-user)
+
+(load "../util.lisp")
 
 (play
  (dupl (* (sin-osc.ar (+ (poll (mouse-y.kr 200 5000 :exp))
