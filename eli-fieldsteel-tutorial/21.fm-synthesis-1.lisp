@@ -2,13 +2,11 @@
 
 (in-package :sc-user)
 
-(load "../util.lisp")
-
 (play
- (dupl (* (sin-osc.ar (+ (poll (mouse-y.kr 200 5000 :exp))
-			 (sin-osc.ar (poll (mouse-x.kr 1 2000 :exp))
-				     0 (range (lf-noise0.kr 8) 20 10000))))
-	  0.2)))
+ (dup (* (sin-osc.ar (+ (poll.kr 10 (mouse-y.kr 200 5000 :exp))
+			(sin-osc.ar (poll.kr 10 (mouse-x.kr 1 2000 :exp))
+				    0 (range (lf-noise0.kr 8) 20 10000))))
+	 0.2)))
 
 (defsynth fm ((car-hz 500) (mod-hz 100) (mod-amp 200) (atk .01) (rel 1) (amp .2) (pan 0))
   (out.ar 0 (pan2.ar (* (env-gen.kr (perc atk rel) :act :free)
